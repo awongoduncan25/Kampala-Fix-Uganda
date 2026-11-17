@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Kampala Fix Logo</title>
+  <defs>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16834b"/>
+      <stop offset="1" stop-color="#064b32"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="256" cy="256" r="245" fill="url(#green)"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#ffffff" stroke-width="8" opacity=".8"/>
+
+  <path d="M256 55 C180 55 119 116 119 192 C119 290 256 418 256 418 S393 290 393 192 C393 116 332 55 256 55Z" fill="#ffffff"/>
+
+  <path d="M256 85 C196 85 148 133 148 193 C148 263 256 366 256 366 S364 263 364 193 C364 133 316 85 256 85Z" fill="#0b7042"/>
+
+  <path d="M175 229 L175 184 L198 184 L198 205 L219 184 L248 184 L220 211 L250 245 L220 245 L198 219 L198 245 L175 245Z" fill="#ffffff"/>
+  <path d="M253 245 L253 184 L275 184 L275 245Z" fill="#ffffff"/>
+  <path d="M284 245 L284 184 L306 184 L306 245Z" fill="#ffffff"/>
+
+  <path d="M165 275 H347" stroke="#f7c844" stroke-width="12" stroke-linecap="round"/>
+  <path d="M256 275 V335" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-dasharray="15 15"/>
+
+  <path d="M211 135 L211 115 L222 115 L222 135 M231 135 L231 105 L244 105 L244 135 M253 135 L253 120 L264 120 L264 135 M273 135 L273 99 L286 99 L286 135 M295 135 L295 116 L307 116 L307 135" fill="#f7c844"/>
+
+  <path d="M256 418 L256 450" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <path d="M220 448 H292" stroke="#e5b72e" stroke-width="12" stroke-linecap="round"/>
+</svg>
