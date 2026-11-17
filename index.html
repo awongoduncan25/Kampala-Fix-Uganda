@@ -158,7 +158,7 @@
   $("track-btn").addEventListener("click",async()=>{
     const ref=$("track-code").value.trim().toUpperCase(); if(!ref){$("track-result").innerHTML='<div class="empty">Enter your reference code.</div>';return;}
     $("track-result").innerHTML='<div class="empty">Checking…</div>';
-    const {data,error}=await supabase.from("reports").select(safeFields).eq("ref",ref).maybeSingle();
+    const {data,error}=await supabase.from("public_reports").select(safeFields).eq("ref",ref).maybeSingle();
     if(error){$("track-result").innerHTML='<div class="empty">Unable to check this report. Please try again later.</div>';return;}
     $("track-result").innerHTML=data?renderReport(data):'<div class="empty">No report found with that reference code. Check the code and try again.</div>';
   });
