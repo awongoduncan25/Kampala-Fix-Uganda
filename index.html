@@ -184,6 +184,83 @@
     $("track-result").innerHTML=data?renderReport(data):'<div class="empty">No report found with that reference code. Check the code and try again.</div>';
   });
   $("refresh").addEventListener("click",loadReports);
+    $("adminLoginForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const message=$("adminLoginMessage");
+    message.textContent="Signing in...";
+    try{
+      const {data,error}=await supabase.auth.signInWithPassword({
+        email:$("adminEmail").value.trim(),
+        password:$("adminPassword").value
+      });
+      if(error) throw error;
+
+      const check=await supabase.rpc("is_kampala_fix_admin");
+      if(check.error||check.data!==true){
+        await supabase.auth.signOut();
+        throw new Error("This account is not authorised as an administrator.");
+      }
+
+      $("adminLoginForm").hidden=true;
+      $("adminDashboard").hidden=false;
+      message.textContent="";
+      await loadAdminReports();
+    }catch(err){
+      message.textContent=err.message||"Login failed. Please try again.";
+    }
+  });
+
+  async function loadAdminReports(){
+    const area=$("adminReports");
+    area.textContent="Loading reports...";
+    const {data,error}=await supabase.from("reports")
+      .select("id,ref,name,phone,title,description,category,status,created_at")
+      .order("created_at",{ascending:false});
+    if(error){
+      area.textContent="Could not load reports: "+error.message;
+      return;
+    }
+    area.innerHTML=data.map(r=>`
+      <article class="report">
+        <h3>${esc(r.title)}</h3>
+        <p>Reference: ${esc(r.ref)}</p>
+        <p>Resident: ${esc(r.name)} · ${esc(r.phone)}</p>
+        <p>${esc(r.description||"")}</p>
+        <label>Status</label>
+        <select id="status-${esc(r.id)}">
+          <option value="new" ${r.status==="new"?"selected":""}>New</option>
+          <option value="assigned" ${r.status==="assigned"?"selected":""}>Assigned</option>
+          <option value="in_progress" ${r.status==="in_progress"?"selected":""}>In Progress</option>
+          <option value="resolved" ${r.status==="resolved"?"selected":""}>Resolved</option>
+        </select>
+        <button type="button" data-update="${esc(r.id)}">Save status</button>
+      </article>
+    `).join("")||"No reports yet.";
+  }
+
+  $("adminReports").addEventListener("click",async e=>{
+    const id=e.target.dataset.update;
+    if(!id)return;
+    const status=$("status-"+id).value;
+    const changes={status};
+    if(status!=="new")changes.ack_at=new Date().toISOString();
+    if(status==="resolved")changes.resolved_at=new Date().toISOString();
+    else changes.resolved_at=null;
+    const {error}=await supabase.from("reports").update(changes).eq("id",id);
+    if(error)alert("Update failed: "+error.message);
+    else{
+      alert("Report status updated successfully.");
+      await loadAdminReports();
+    }
+  });
+
+  $("adminLogout").addEventListener("click",async()=>{
+    await supabase.auth.signOut();
+    $("adminDashboard").hidden=true;
+    $("adminLoginForm").hidden=false;
+    $("adminPassword").value="";
+    $("adminLoginMessage").textContent="You have signed out.";
+  });
   loadReports();
 })();
 </script>
