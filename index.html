@@ -106,7 +106,7 @@
   }
   async function loadReports(){
     $("recent-list").innerHTML='<div class="empty">Loading reports…</div>';
-    const {data,error}=await supabase.from("reports").select(safeFields).order("created_at",{ascending:false}).limit(50);
+    const {data,error}=await supabase.from("public_reports").select(safeFields).order("created_at",{ascending:false}).limit(50);
     if(error){$("recent-list").innerHTML='<div class="empty">Could not load reports. Check your Supabase table permissions and RLS policies.</div>';updateStats([]);return;}
     allReports=data||[]; updateStats(allReports);
     $("recent-list").innerHTML=allReports.length?allReports.slice(0,6).map(renderReport).join(""):'<div class="empty">No reports have been submitted yet.</div>';
