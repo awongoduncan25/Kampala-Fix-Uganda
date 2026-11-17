@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0b7a3b"/>
+<title>KAMPALA FIX — Report it. Track it. Fix it.</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230b7a3b'/><path d='M14 40V26a4 4 0 014-4h16v18z' fill='%23fff'/><circle cx='22' cy='44' r='4' fill='%23fff'/><circle cx='40' cy='44' r='4' fill='%23fff'/><path d='M36 22h8l4 10v8h-12z' fill='%23ffd166'/></svg>"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{
+    --g:#0b7a3b;--g-dark:#075c2c;--g-light:#e8f5ee;--g2:#0f9d4e;
+    --ink:#0f1720;--mut:#5b6770;--bg:#f4f6f3;--card:#ffffff;--line:#e2e6e1;
+    --amber:#f5a524;--blue:#2f6fed;--purple:#7c3aed;--green:#10b981;
+    --shadow:0 1px 2px rgba(15,23,32,.04),0 8px 24px rgba(15,23,32,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;padding-bottom:80px}
+  @media(min-width:768px){body{padding-bottom:0}}
+  .hero{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;
+    padding:22px 20px 26px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+    background:rgba(255,255,255,.08);border-radius:50%}
+  .hero::before{content:"";position:absolute;right:40px;bottom:-60px;width:120px;height:120px;
+    background:rgba(255,255,255,.06);border-radius:50%}
+  .hero-inner{max-width:760px;margin:0 auto;position:relative;z-index:2;
+    display:flex;align-items:center;gap:14px}
+  .logo{width:52px;height:52px;flex-shrink:0}
+  .brand h1{margin:0;font-size:22px;letter-spacing:.5px;font-weight:800}
+  .brand p{margin:2px 0 0;font-size:13px;opacity:.92}
+  .badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+    background:rgba(255,255,255,.15);backdrop-filter:blur(6px);
+    padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
+  .badge .dot{width:8px;height:8px;background:#7CFFB2;border-radius:50%;
+    box-shadow:0 0 0 3px rgba(124,255,178,.3);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  main{max-width:760px;margin:0 auto;padding:18px 16px 24px}
+  .card{background:var(--card);border-radius:var(--radius);padding:20px;
+    box-shadow:var(--shadow);margin-bottom:14px;border:1px solid var(--line)}
+  .card h2{margin:0 0 4px;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card h2 svg{width:20px;height:20px;color:var(--g)}
+  .card .sub{margin:0 0 14px;font-size:13px;color:var(--mut)}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--ink)}
+  label .hint{font-weight:400;color:var(--mut);font-size:12px}
+  input,select,textarea,button{font:inherit;width:100%;padding:12px 14px;
+    border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);
+    transition:border-color .15s,box-shadow .15s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g);
+    box-shadow:0 0 0 3px rgba(11,122,59,.12)}
+  textarea{min-height:70px;resize:vertical}
+  button{background:var(--g);color:#fff;border:0;font-weight:700;cursor:pointer;
+    padding:14px;border-radius:12px;transition:transform .06s,background .15s}
+  button:active{transform:scale(.98)}
+  button.primary{background:var(--g);font-size:15px;margin-top:16px}
+  button.primary:hover{background:var(--g-dark)}
+  button.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);font-weight:600}
+  button.ghost:hover{background:var(--bg)}
+  .row{display:flex;gap:10px;margin-top:8px}
+  .row>*{flex:1}
+  .photo-drop{border:2px dashed var(--line);border-radius:12px;padding:18px;
+    text-align:center;cursor:pointer;transition:.15s;background:var(--bg)}
+  .photo-drop:hover{border-color:var(--g);background:var(--g-light)}
+  .photo-drop svg{width:28px;height:28px;color:var(--mut);margin-bottom:6px}
+  .photo-drop p{margin:0;font-size:13px;color:var(--mut)}
+  .photo-drop input{display:none}
+  .preview{margin-top:10px;border-radius:12px;overflow:hidden;display:none}
+  .preview img{width:100%;display:block;max-height:220px;object-fit:cover}
+  #map,#bigmap{height:240px;border-radius:12px;border:1.5px solid var(--line);margin-top:8px;z-index:1}
+  #bigmap{height:420px}
+  .loc-line{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .loc-line .ghost{flex:0 0 auto;width:auto;padding:10px 14px;margin:0}
+  .loc-line .loc{font-size:12px;color:var(--mut);font-family:ui-monospace,monospace}
+  .report{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .report:last-child{border-bottom:0}
+  .report img,.report .thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;
+    flex-shrink:0;background:var(--g-light);display:flex;align-items:center;justify-content:center}
+  .report .thumb svg{width:26px;height:26px;color:var(--g)}
+  .report .body{flex:1;min-width:0}
+  .report .title{font-weight:600;font-size:14px;margin-bottom:3px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .report .meta{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+    padding:3px 9px;border-radius:20px;letter-spacing:.2px;text-transform:uppercase}
+  .pill.new{background:#fff3cd;color:#8a6200}
+  .pill.assigned{background:#dbeafe;color:#1e40af}
+  .pill.progress{background:#ede9fe;color:#5b21b6}
+  .pill.resolved{background:#d1fae5;color:#065f46}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .stat{background:var(--bg);border-radius:12px;padding:14px 10px;text-align:center;border:1px solid var(--line)}
+  .stat b{display:block;font-size:26px;font-weight:800;color:var(--g);line-height:1}
+  .stat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+  .stat.res b{color:var(--green)} .stat.pend b{color:var(--amber)}
+  .tabs{display:none}
+  @media(min-width:768px){
+    .tabs{display:flex;gap:8px;margin-bottom:16px;background:var(--card);padding:6px;
+      border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line)}
+    .tabs button{background:transparent;color:var(--mut);border:0;padding:10px 16px;
+      border-radius:10px;font-weight:600;font-size:14px;width:auto;margin:0;
+      display:flex;align-items:center;gap:6px;cursor:pointer}
+    .tabs button svg{width:16px;height:16px}
+    .tabs button.on{background:var(--g);color:#fff}
+    .tabs button:hover:not(.on){background:var(--g-light);color:var(--g)}
+  }
+  .bottomnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);
+    border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    z-index:999;box-shadow:0 -4px 20px rgba(15,23,32,.06)}
+  .bottomnav button{flex:1;background:transparent;color:var(--mut);border:0;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;
+    font-size:10px;font-weight:600;border-radius:10px;margin:0;cursor:pointer}
+  .bottomnav button svg{width:22px;height:22px}
+  .bottomnav button.on{color:var(--g);background:var(--g-light)}
+  @media(min-width:768px){.bottomnav{display:none}}
+  .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s;
+    z-index:1001;max-width:90%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{background:var(--g)} .toast.err{background:#c0392b}
+  .hidden{display:none!important}
+  .empty{text-align:center;padding:32px 16px;color:var(--mut)}
+  .empty svg{width:48px;height:48px;color:var(--line);margin-bottom:8px}
+  .empty p{margin:4px 0;font-size:14px}
+  .divider{height:1px;background:var(--line);margin:16px 0}
+  .note{background:#fffbe6;border:1px solid #ffe58f;color:#7a5c00;padding:10px 12px;
+    border-radius:10px;font-size:12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+  .note svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="14" fill="rgba(255,255,255,.15)"/>
+      <path d="M12 42V26a4 4 0 014-4h18v20z" fill="#fff"/>
+      <path d="M34 22h9l6 12v8H34z" fill="#ffd166"/>
+      <circle cx="21" cy="46" r="5" fill="#fff" stroke="#0b7a3b" stroke-width="2"/>
+      <circle cx="45" cy="46" r="5" fill="#fff" stroke="#0b7a3b" stroke-width="2"/>
+      <path d="M24 30h8M24 34h8" stroke="#0b7a3b" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div class="brand"><h1>KAMPALA FIX</h1><p>Report it. Track it. Fix it.</p></div>
+  </div>
+  <div class="badge"><span class="dot"></span>Pilot area · Live</div>
+</header>
+<main>
+  <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span><b>Demo mode.</b> Reports are saved on this device. Photos and locations stay local until a backend is connected.</span></div>
+  <nav class="tabs" id="tabs">
+    <button class="on" data-tab="report">＋ Report</button><button data-tab="map">⌖ Map</button><button data-tab="track">⌕ Track</button><button data-tab="collectors">♙ Collectors</button><button data-tab="dashboard">↗ Results</button>
+  </nav>
+  <section id="tab-report"><div class="card">
+    <h2>＋ Report a rubbish hotspot</h2><p class="sub">Takes about 60 seconds. Your name is optional.</p>
+    <form id="form" novalidate>
+      <div class="row"><div><label for="name">Your name <span class="hint">(optional)</span></label><input id="name" placeholder="e.g. Sarah" maxlength="60" autocomplete="name"/></div><div><label for="phone">Phone <span class="hint">(optional)</span></label><input id="phone" type="tel" placeholder="+256..." maxlength="20" autocomplete="tel"/></div></div>
+      <label for="title">What's the problem? *</label><input id="title" required placeholder="e.g. Overflowing skip at Kisenyi junction" maxlength="120"/>
+      <label for="cat">Category *</label><select id="cat" required><option value="overflow">Overflowing skip / bin</option><option value="illegal">Illegal dumping</option><option value="missed">Missed collection</option><option value="drain">Waste blocking drain</option><option value="other">Other</option></select>
+      <label for="desc">Details <span class="hint">(optional)</span></label><textarea id="desc" placeholder="How long has it been there? Any health risk nearby?" maxlength="500"></textarea>
+      <label>Photo * <span class="hint">(max 4MB)</span></label><label for="photo" class="photo-drop" id="photoDrop"><p><b>Tap to take or choose a photo</b></p><p style="margin-top:2px">Camera works on mobile</p><input id="photo" type="file" accept="image/*" capture="environment" required/></label>
+      <div class="preview" id="preview"><img id="previewImg" alt=""/></div>
+      <label>Location * <span class="hint">(tap map or use GPS)</span></label><div id="map"></div>
+      <div class="loc-line"><button type="button" class="ghost" id="gps">◎ Use my GPS</button><span class="loc" id="loc">No location yet</span></div>
+      <button type="submit" class="primary">Submit report</button>
+    </form>
+  </div></section>
+  <section id="tab-map" class="hidden"><div class="card"><h2>⌖ Reported hotspots</h2><p class="sub">Yellow = new · Blue = assigned · Purple = in progress · Green = resolved</p><div id="bigmap"></div></div></section>
+  <section id="tab-track" class="hidden"><div class="card"><h2>⌕ Track a report</h2><p class="sub">Enter the reference you got when you submitted (e.g. KF-3F9A2).</p><label for="trackRef">Report reference</label><input id="trackRef" placeholder="KF-XXXXX" style="text-transform:uppercase"/><button id="trackBtn" class="primary">Look up</button><div id="trackOut" style="margin-top:14px"></div></div><div class="card"><h2>All reports in pilot area</h2><div id="list"></div></div></section>
+  <section id="tab-collectors" class="hidden"><div class="card"><h2>♙ Verified waste collectors</h2><p class="sub">"Verified" means a signed pilot agreement and confirmed contact. Not yet onboarded in this demo.</p><div id="collectors"></div></div></section>
+  <section id="tab-dashboard" class="hidden"><div class="card"><h2>↗ Results</h2><div class="stats"><div class="stat"><b id="sTotal">0</b><span>Reports</span></div><div class="stat res"><b id="sRes">0</b><span>Resolved</span></div><div class="stat pend"><b id="sPend">0</b><span>Pending</span></div></div><p class="sub" style="margin-top:14px">Targets: acknowledge ≤ 48h · resolve ≤ 14 days · verify with before/after photo.</p></div><div class="card"><h2>Responder panel</h2><p class="sub">Pilot-only shared passcode. In production this becomes real authentication.</p><label for="pass">Passcode</label><input id="pass" type="password" placeholder="pilot2025"/><button id="unlock" class="primary">Unlock panel</button><div id="respPanel" class="hidden" style="margin-top:14px"></div></div></section>
+</main>
+<nav class="bottomnav" id="bottomnav"><button class="on" data-tab="report">＋<span>Report</span></button><button data-tab="map">⌖<span>Map</span></button><button data-tab="track">⌕<span>Track</span></button><button data-tab="collectors">♙<span>Collectors</span></button><button data-tab="dashboard">↗<span>Results</span></button></nav>
+<div class="toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const CONFIG={passcode:"pilot2025",collectors:[{name:"[Pending] KCCA Division contact",area:"Pilot area",phone:"—",verified:false},{name:"[Pending] Private collector",area:"Pilot area",phone:"—",verified:false}]};
+const DB={key:"kampala_fix_reports_v1",all(){try{return JSON.parse(localStorage.getItem(this.key))||[]}catch(e){return[]}},save(a){localStorage.setItem(this.key,JSON.stringify(a))},add(r){const a=this.all();a.unshift(r);this.save(a)},update(ref,patch){const a=this.all().map(r=>r.ref===ref?{...r,...patch}:r);this.save(a)},get(ref){return this.all().find(r=>r.ref===ref)}};
+const STATUS=["new","assigned","progress","resolved"],LABEL={new:"New",assigned:"Assigned",progress:"In progress",resolved:"Resolved"},COLORS={new:"#f5a524",assigned:"#2f6fed",progress:"#7c3aed",resolved:"#10b981"};
+let toastTimer;function toast(msg,type="ok"){const t=document.getElementById("toast");t.textContent=msg;t.className="toast show "+type;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3200)}
+function switchTab(name){document.querySelectorAll("#tabs button,#bottomnav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));["report","map","track","collectors","dashboard"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("hidden",t!==name));if(name==="map"){initBigMap();setTimeout(()=>bigMap.invalidateSize(),50);refreshBigMap()}if(name==="dashboard")renderStats();window.scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll("#tabs button,#bottomnav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+const PILOT=[0.3136,32.5811];let pickMap,bigMap,bigLayer,pin=null,picked=null;
+function initPickMap(){pickMap=L.map("map").setView(PILOT,14);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(pickMap);pickMap.on("click",e=>setPin(e.latlng));setTimeout(()=>pickMap.invalidateSize(),200)}
+function setPin(ll){picked=ll;const icon=L.divIcon({html:`<div style="background:${COLORS.new};width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,className:"",iconSize:[18,18],iconAnchor:[9,9]});if(pin)pin.setLatLng(ll);else pin=L.marker(ll,{icon}).addTo(pickMap);document.getElementById("loc").textContent=ll.lat.toFixed(5)+", "+ll.lng.toFixed(5)}
+function initBigMap(){if(bigMap)return;bigMap=L.map("bigmap").setView(PILOT,14);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(bigMap);bigLayer=L.layerGroup().addTo(bigMap)}
+function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function refreshBigMap(){if(!bigMap)return;bigLayer.clearLayers();DB.all().forEach(r=>{if(r.lat==null||r.lng==null)return;const c=COLORS[r.status]||COLORS.new;const icon=L.divIcon({html:`<div style="background:${c};width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,className:"",iconSize:[20,20],iconAnchor:[10,10]});L.marker([r.lat,r.lng],{icon}).bindPopup(`<b>${esc(r.title)}</b><br><span class="pill ${r.status}">${LABEL[r.status]}</span><br><small>${esc(r.ref)}</small>`).addTo(bigLayer)})}
+document.getElementById("photo").addEventListener("change",e=>{const f=e.target.files[0];if(!f){document.getElementById("preview").style.display="none";return}const url=URL.createObjectURL(f);document.getElementById("previewImg").src=url;document.getElementById("preview").style.display="block"});
+function fileToDataURL(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file)})}function makeRef(){return "KF-"+Math.random().toString(16).slice(2,7).toUpperCase()}
+document.getElementById("gps").onclick=()=>{if(!navigator.geolocation)return toast("GPS not available on this device","err");toast("Getting your location…");navigator.geolocation.getCurrentPosition(p=>{setPin({lat:p.coords.latitude,lng:p.coords.longitude});pickMap.setView([p.coords.latitude,p.coords.longitude],16);toast("Location pinned","ok")},()=>toast("Could not get GPS. Tap the map instead.","err"))};
+document.getElementById("form").onsubmit=async e=>{e.preventDefault();if(!document.getElementById("title").value.trim())return toast("Please describe the problem.","err");if(!picked)return toast("Please pin the location on the map.","err");const f=document.getElementById("photo").files[0];if(!f)return toast("Please add a photo.","err");if(f.size>4*1024*1024)return toast("Photo too large (max 4MB).","err");try{const img=await fileToDataURL(f);const r={ref:makeRef(),name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim(),title:document.getElementById("title").value.trim(),desc:document.getElementById("desc").value.trim(),cat:document.getElementById("cat").value,lat:picked.lat,lng:picked.lng,img,status:"new",created:Date.now(),ackAt:null,resolvedAt:null,notes:[]};DB.add(r);e.target.reset();document.getElementById("preview").style.display="none";picked=null;if(pin){pickMap.removeLayer(pin);pin=null}document.getElementById("loc").textContent="No location yet";toast("Report submitted — ref "+r.ref,"ok");renderList();renderStats();refreshBigMap();setTimeout(()=>{document.getElementById("trackRef").value=r.ref;switchTab("track");document.getElementById("trackBtn").click()},600)}catch(err){toast("Could not save the photo. Please try again.","err")}};
+function timeAgo(ts){const d=(Date.now()-ts)/1000;if(d<3600)return Math.round(d/60)+"m ago";if(d<86400)return Math.round(d/3600)+"h ago";return Math.round(d/86400)+"d ago"}
+function emptyState(msg){return `<div class="empty"><p>${esc(msg)}</p></div>`}
+function renderList(){const out=document.getElementById("list"),a=DB.all();if(!a.length){out.innerHTML=emptyState("No reports yet. Be the first to report a hotspot.");return}out.innerHTML=a.map(r=>`<div class="report"><img src="${r.img}" alt="Reported hotspot photo"/><div class="body"><div class="title">${esc(r.title)}</div><div class="meta">${esc(r.ref)} · ${timeAgo(r.created)} <span class="pill ${r.status}">${LABEL[r.status]}</span></div></div></div>`).join("")}
+document.getElementById("trackBtn").onclick=()=>{const q=document.getElementById("trackRef").value.trim().toUpperCase(),out=document.getElementById("trackOut");if(!q){out.innerHTML=emptyState("Enter a reference to look up.");return}const r=DB.get(q);if(!r){out.innerHTML=emptyState("No report found with reference "+q+".");return}out.innerHTML=`<div class="report"><img src="${r.img}" alt="Reported hotspot photo"/><div class="body"><div class="title">${esc(r.title)}</div><div class="meta">${esc(r.ref)} <span class="pill ${r.status}">${LABEL[r.status]}</span></div><div class="meta" style="margin-top:6px">Reported ${new Date(r.created).toLocaleString()}</div>${r.ackAt?`<div class="meta">Acknowledged ${new Date(r.ackAt).toLocaleString()} (${((r.ackAt-r.created)/36e5).toFixed(1)}h)</div>`:'<div class="meta">Not yet acknowledged</div>'}${r.resolvedAt?`<div class="meta">Resolved ${new Date(r.resolvedAt).toLocaleString()}</div>`:""}${r.notes.length?`<div class="meta">Updates: ${r.notes.map(n=>esc(n.text)).join(" · ")}</div>`:""}</div></div>`};
+document.getElementById("collectors").innerHTML=CONFIG.collectors.map(c=>`<div class="report"><div class="thumb">♙</div><div class="body"><div class="title">${esc(c.name)}</div><div class="meta">${esc(c.area)} · ${c.verified?"Verified pilot partner":"Not yet verified"}</div><div class="meta">Contact: ${esc(c.phone)}</div></div></div>`).join("")||emptyState("No collectors onboarded yet.");
+document.getElementById("unlock").onclick=()=>{if(document.getElementById("pass").value!==CONFIG.passcode)return toast("Wrong passcode","err");const p=document.getElementById("respPanel");p.classList.remove("hidden");const a=DB.all();p.innerHTML=a.length?a.map(r=>`<div class="report"><div class="body"><div class="title">${esc(r.title)} <small class="meta">${esc(r.ref)}</small></div><div class="meta" style="margin-bottom:8px">Status: <span class="pill ${r.status}">${LABEL[r.status]}</span></div><label>Update status</label><select onchange="updateStatus('${r.ref}',this.value)">${STATUS.map(s=>`<option value="${s}" ${s===r.status?"selected":""}>${LABEL[s]}</option>`).join("")}</select><label>Note <span class="hint">(optional)</span></label><input onchange="addNote('${r.ref}',this.value)" placeholder="e.g. Truck dispatched, cleared 3pm"/></div></div>`).join(""):emptyState("No reports to action yet.");toast("Responder panel unlocked","ok")};
+window.updateStatus=(ref,status)=>{const patch={status};if(status==="assigned"&&!DB.get(ref).ackAt)patch.ackAt=Date.now();if(status==="resolved")patch.resolvedAt=Date.now();DB.update(ref,patch);renderStats();renderList();refreshBigMap();toast("Status updated to "+LABEL[status],"ok")};
+window.addNote=(ref,text)=>{if(!text.trim())return;const r=DB.get(ref);r.notes.push({text,at:Date.now()});DB.update(ref,{notes:r.notes});toast("Note saved","ok")};
+function renderStats(){const a=DB.all(),res=a.filter(r=>r.status==="resolved").length;document.getElementById("sTotal").textContent=a.length;document.getElementById("sRes").textContent=res;document.getElementById("sPend").textContent=a.length-res}
+initPickMap();renderList();renderStats();
+</script>
+</body>
+</html>
