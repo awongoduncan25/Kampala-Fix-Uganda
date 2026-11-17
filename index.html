@@ -271,7 +271,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         <select id="status-${esc(r.id)}">
           <option value="new" ${r.status==="new"?"selected":""}>New</option>
           <option value="assigned" ${r.status==="assigned"?"selected":""}>Assigned</option>
-          <option value="in_progress" ${r.status==="in_progress"?"selected":""}>In Progress</option>
+          <option value="progress" ${r.status==="progress"?"selected":""}>In Progress</option>
           <option value="resolved" ${r.status==="resolved"?"selected":""}>Resolved</option>
         </select>
         <button type="button" data-update="${esc(r.id)}">Save status</button>
